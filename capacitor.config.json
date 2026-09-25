@@ -1,0 +1,14 @@
+{
+  "appId": "com.spendsmart.app",
+  "appName": "SpendSmart",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "backgroundColor": "#07100D",
+    "allowMixedContent": true,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": false
+  }
+}
