@@ -27,7 +27,7 @@ export default function OfflineIndicator() {
 
   if (!showBanner && isOnline) return null;
 
-  const color = isOnline ? theme.income : theme.expense;
+  const color = isOnline ? theme.income : theme.danger;
 
   return (
     <div className="fixed top-0 left-0 right-0 z-[300] flex justify-center px-4 pointer-events-none" style={{ paddingTop: "calc(8px + var(--safe-top, 0px))" }}>

@@ -10,7 +10,7 @@ import { useCurrency } from "../context/CurrencyContext";
 import { CATEGORIES, INCOME_CATEGORIES } from "../utils/categories";
 import { DollarSign, Tag, Check, Loader2 } from "lucide-react";
 
-export default function AddExpense({ user, onDone, editData = null, defaultType = "expense" }) {
+export default function AddExpense({ user, onDone, onTypeChange, editData = null, defaultType = "expense" }) {
   const [type, setType] = useState(editData?.type || defaultType || "expense");
   const [title, setTitle] = useState(editData?.title || "");
   const [amount, setAmount] = useState(editData?.amount || "");
@@ -105,6 +105,7 @@ export default function AddExpense({ user, onDone, editData = null, defaultType 
                 onClick={() => {
                   setType(opt.value);
                   setCategory(opt.value === "expense" ? CATEGORIES[0] : INCOME_CATEGORIES[0]);
+                  onTypeChange?.(opt.value);
                 }}
                 className="flex-1 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-1.5"
                 style={{

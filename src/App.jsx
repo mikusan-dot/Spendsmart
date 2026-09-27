@@ -182,6 +182,7 @@ export default function App() {
         <AddExpense
           user={user}
           defaultType={addType}
+          onTypeChange={setAddType}
           onDone={() => {
             setShowAdd(false);
             setActiveTab("transactions");

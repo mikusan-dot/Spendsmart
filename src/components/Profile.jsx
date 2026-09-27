@@ -10,6 +10,21 @@ import {
   isReminderEnabled, setReminderEnabled,
   requestNotificationPermission, scheduleInactivityReminder, cancelReminder,
 } from "../utils/notifications";
+
+const NOTIFICATIONS_KEY = "ss_notifications_enabled";
+
+const isNotificationsEnabled = () => {
+  try {
+    const val = localStorage.getItem(NOTIFICATIONS_KEY);
+    return val === null ? true : val === "true";
+  } catch {
+    return true;
+  }
+};
+
+const setNotificationsEnabled = (enabled) => {
+  localStorage.setItem(NOTIFICATIONS_KEY, enabled.toString());
+};
 import { ACHIEVEMENTS, LEVELS } from "../utils/gamification";
 import { Settings, Cloud, FileDown, Trophy, Flame, Shield, ChevronDown, Bell, Palette, Volume2, Vibrate, Copy, Check, RotateCcw, Info, Star, Camera, X, Pencil } from "lucide-react";
 import { AVATAR_PACK } from "../utils/avatarPack";
@@ -118,6 +133,7 @@ export default function Profile({ user, gameData, level, progress, updateStats, 
   const [soundOn, setSoundOn] = useState(isSoundEnabled());
   const [hapticsOn, setHapticsOn] = useState(isHapticsEnabled());
   const [reminderOn, setReminderOn] = useState(isReminderEnabled());
+  const [notificationsOn, setNotificationsOn] = useState(isNotificationsEnabled());
   const [copied, setCopied] = useState(false);
   const [syncCode, setSyncCode] = useState("");
   const [showSyncInput, setShowSyncInput] = useState(false);
@@ -776,42 +792,10 @@ export default function Profile({ user, gameData, level, progress, updateStats, 
       </AccordionItem>
 
       <AccordionItem
-        id="theme"
-        icon={Palette}
-        label="Theme"
-        desc={theme.name}
-        isActive={activeSection === "theme"}
-        onToggle={() => setActiveSection(activeSection === "theme" ? null : "theme")}
-        theme={theme}
-      >
-        <div className="grid grid-cols-2 gap-2">
-          {Object.entries(themes).map(([key, t]) => (
-            <button
-              key={key}
-              onClick={() => setThemeName(key)}
-              className="rounded-xl p-3.5 text-left transition-all duration-200"
-              style={{
-                background: t.heroGradient,
-                border: `2px solid ${themeName === key ? t.accent : "transparent"}`,
-                boxShadow: themeName === key ? `0 0 16px ${t.accent}30` : "none",
-              }}
-            >
-              <p className="text-white font-semibold text-xs">{t.name}</p>
-              <div className="flex gap-1.5 mt-2">
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: t.accent }} />
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: t.accentSecondary }} />
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: t.bg }} />
-              </div>
-            </button>
-          ))}
-        </div>
-      </AccordionItem>
-
-      <AccordionItem
         id="settings"
         icon={Settings}
         label="App Settings"
-        desc="Sound, haptics, reminders"
+        desc="Sound, haptics, notifications, theme and reminders"
         isActive={activeSection === "settings"}
         onToggle={() => setActiveSection(activeSection === "settings" ? null : "settings")}
         theme={theme}
@@ -821,6 +805,45 @@ export default function Profile({ user, gameData, level, progress, updateStats, 
         <div style={{ borderBottom: `1px solid ${theme.border}` }} />
         <Toggle label="Haptic Feedback" desc="Vibration on interactions" enabled={hapticsOn}
           icon={Vibrate} onToggle={() => { setHapticsEnabled(!hapticsOn); setHapticsOn(!hapticsOn); }} />
+        <div style={{ borderBottom: `1px solid ${theme.border}` }} />
+        <Toggle label="Notifications" desc="Allow app notifications" enabled={notificationsOn}
+          icon={Bell} onToggle={async () => {
+            const next = !notificationsOn;
+            setNotificationsOn(next);
+            setNotificationsEnabled(next);
+            if (next) {
+              await requestNotificationPermission();
+            }
+          }} />
+        <div style={{ borderBottom: `1px solid ${theme.border}` }} />
+        <div className="py-2.5">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: theme.accent + "12" }}>
+              <Palette size={14} style={{ color: theme.accent }} />
+            </div>
+            <div>
+              <p className="text-sm font-medium" style={{ color: theme.text }}>Theme</p>
+              <p className="text-xs" style={{ color: theme.textMuted }}>Choose appearance</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {Object.entries(themes).map(([key, t]) => (
+              <button
+                key={key}
+                onClick={() => setThemeName(key)}
+                className="px-3 py-1.5 rounded-xl text-xs font-medium transition-all press flex items-center gap-1.5"
+                style={{
+                  backgroundColor: themeName === key ? theme.accent : theme.bgTertiary,
+                  color: themeName === key ? theme.bg : theme.textMuted,
+                  border: `1px solid ${themeName === key ? theme.accent : theme.border}`,
+                }}
+              >
+                <span>{t.icon}</span>
+                <span>{t.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
         <div style={{ borderBottom: `1px solid ${theme.border}` }} />
         <Toggle label="Inactivity Reminder" desc="Remind after 24h of no activity" enabled={reminderOn}
           icon={Bell} onToggle={handleReminderToggle} />

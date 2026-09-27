@@ -262,14 +262,14 @@ export default function Charts({ user }) {
                   tickLine={false}
                 />
                 <Tooltip content={<CustomTooltip theme={theme} format={format} />} cursor={false} />
-                <Bar dataKey="expense" fill={theme.expense} radius={[4, 4, 0, 0]} name="Expenses" maxBarSize={24} />
+                <Bar dataKey="expense" fill={theme.expenseMuted} radius={[4, 4, 0, 0]} name="Expenses" maxBarSize={24} />
                 <Bar dataKey="income" fill={theme.income} radius={[4, 4, 0, 0]} name="Income" maxBarSize={24} />
               </BarChart>
             </ResponsiveContainer>
           </div>
           <div className="flex gap-4 mt-3 justify-center text-[11px]" style={{ color: theme.textMuted }}>
             <div className="flex items-center gap-1.5">
-              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: theme.expense }} />
+              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: theme.expenseMuted }} />
               Expenses
             </div>
             <div className="flex items-center gap-1.5">

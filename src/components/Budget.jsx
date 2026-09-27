@@ -87,13 +87,13 @@ export default function Budget({ user }) {
   };
 
   const getBarColor = (pct) => {
-    if (pct > 100) return theme.expense;
-    if (pct >= 86) return "#F5B942";
-    if (pct >= 61) return "#F5B942";
-    return theme.income;
+    if (pct > 100) return theme.danger;
+    if (pct >= 86) return theme.warning;
+    if (pct >= 61) return theme.warning;
+    return theme.text;
   };
 
-  const statusColor = isOver ? theme.expense : overallPct >= 86 ? "#F5B942" : theme.income;
+  const statusColor = isOver ? theme.danger : overallPct >= 86 ? theme.warning : theme.text;
 
   return (
     <div className="space-y-6 fade-in">
@@ -201,8 +201,8 @@ export default function Budget({ user }) {
       <div className="grid grid-cols-3 gap-3 md:gap-4">
         {[
           { label: "Total Budget", value: format(totalBudget.toFixed(0)), color: theme.text },
-          { label: "Spent", value: format(totalSpent.toFixed(0)), color: isOver ? theme.expense : theme.text },
-          { label: "Remaining", value: isOver ? `-${format((totalSpent - totalBudget).toFixed(0))}` : format(remaining.toFixed(0)), color: isOver ? theme.expense : theme.income },
+          { label: "Spent", value: format(totalSpent.toFixed(0)), color: isOver ? theme.danger : theme.text },
+          { label: "Remaining", value: isOver ? `-${format((totalSpent - totalBudget).toFixed(0))}` : format(remaining.toFixed(0)), color: isOver ? theme.danger : theme.income },
         ].map((stat) => (
           <div
             key={stat.label}
@@ -267,7 +267,7 @@ export default function Budget({ user }) {
                       {isOverBudget && (
                         <span
                           className="text-xs font-medium px-2 py-0.5 rounded-lg"
-                          style={{ backgroundColor: `${theme.expense}18`, color: theme.expense }}
+                          style={{ backgroundColor: `${theme.danger}18`, color: theme.danger }}
                         >
                           Over
                         </span>
@@ -275,7 +275,7 @@ export default function Budget({ user }) {
                       {!isOverBudget && hasBudget && pct >= 86 && (
                         <span
                           className="text-xs font-medium px-2 py-0.5 rounded-lg"
-                          style={{ backgroundColor: `#F5B94218`, color: "#F5B942" }}
+                          style={{ backgroundColor: `${theme.warning}18`, color: theme.warning }}
                         >
                           {Math.round(pct)}%
                         </span>
@@ -304,7 +304,7 @@ export default function Budget({ user }) {
                         </p>
                         <p
                           className="text-sm tabular-nums font-medium"
-                          style={{ color: isOverBudget ? theme.expense : theme.textMuted }}
+                          style={{ color: isOverBudget ? theme.danger : theme.textMuted }}
                         >
                           {Math.round(pct)}%
                         </p>

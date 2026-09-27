@@ -8,21 +8,16 @@ import UndoToast from "./UndoToast";
 import { useCurrency } from "../context/CurrencyContext";
 import { useTheme } from "../context/ThemeContext";
 import {
-  CATEGORIES as BASE_CATEGORIES, CAT_ICON, CAT_COLORS,
-  INC_ICON, INC_COLORS,
-} from "../utils/categories";
-import {
-  Search, X, ChevronDown, ChevronUp, Trash2, Calendar,
-  Receipt, AlertTriangle, Wallet
+  Search, X, ChevronDown, ChevronUp, Trash2, Receipt, AlertTriangle, Wallet, Clock
 } from "lucide-react";
 
 const SWIPE_THRESHOLD = -100;
-const CATEGORIES = ["All", ...BASE_CATEGORIES];
-const TYPE_FILTERS = ["All", "Expense", "Income"];
 
-const MONTHS = [
-  "January","February","March","April","May","June",
-  "July","August","September","October","November","December",
+const UNIFIED_FILTERS = [
+  { key: "all", label: "All", icon: null },
+  { key: "time", label: "Time", icon: Clock },
+  { key: "expense", label: "Expense", icon: null },
+  { key: "income", label: "Income", icon: null },
 ];
 
 function formatDate(date) {
@@ -124,14 +119,7 @@ function SwipeableItem({ expense, onEdit, onDeleted }) {
   return (
     <div className={`relative overflow-hidden ${deleting ? "swipe-item swiped" : ""}`} style={{ borderBottom: `1px solid ${theme.border}` }}>
       <div
-        className="absolute inset-0 flex items-center justify-end px-5"
-        style={{ backgroundColor: isIncome ? `${theme.income}15` : `${theme.expense}15` }}
-      >
-        <Trash2 size={18} style={{ color: isIncome ? theme.income : theme.expense }} />
-      </div>
-
-      <div
-        className="px-1 py-3.5 flex items-center justify-between relative cursor-pointer"
+        className="grid grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-3 px-1 py-3.5 relative cursor-pointer"
         style={{
           transform: `translateX(${swipeX}px)`,
           transition: startX !== null ? "none" : "transform 0.3s ease",
@@ -141,29 +129,41 @@ function SwipeableItem({ expense, onEdit, onDeleted }) {
         onTouchEnd={handleTouchEnd}
         onClick={() => onEdit(expense)}
       >
-        <div className="flex items-center gap-3 flex-1 min-w-0">
-          <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-            style={{ backgroundColor: `${catColor}20` }}
-          >
-            {(() => { const Icon = iconMap[expense.category] || Wallet; return <Icon size={16} style={{ color: catColor }} />; })()}
-          </div>
-          <div className="min-w-0">
-            <p className="text-sm font-medium truncate" style={{ color: theme.text }}>{expense.title}</p>
-            <p className="text-xs" style={{ color: theme.textMuted }}>
-              {expense.category}
-              <span className="mx-1.5">·</span>
-              {formatDate(expense.createdAt?.toDate?.())}
-              {isIncome && <span className="ml-1.5" style={{ color: theme.income }}>· Income</span>}
-            </p>
-          </div>
+        <div
+          className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+          style={{ backgroundColor: `${catColor}20` }}
+        >
+          {(() => { const Icon = iconMap[expense.category] || Wallet; return <Icon size={16} style={{ color: catColor }} />; })()}
+        </div>
+        <div className="min-w-0">
+          <p className="text-sm font-medium truncate" style={{ color: theme.text }}>{expense.title}</p>
+          <p className="text-xs" style={{ color: theme.textMuted }}>
+            {expense.category}
+            <span className="mx-1.5">·</span>
+            {formatDate(expense.createdAt?.toDate?.())}
+            {isIncome && <span className="ml-1.5" style={{ color: theme.income }}>· Income</span>}
+          </p>
         </div>
         <p
-          className="text-sm font-semibold flex-shrink-0 ml-2 tabular-nums"
+          className="text-sm font-semibold flex-shrink-0 tabular-nums whitespace-nowrap"
           style={{ color: isIncome ? theme.income : theme.expense }}
         >
           {isIncome ? "+" : "-"}{format(Number(expense.amount))}
         </p>
+        <button
+          type="button"
+          className="flex items-center justify-center w-10 h-10 rounded-xl flex-shrink-0 press"
+          style={{
+            backgroundColor: isIncome ? `${theme.income}15` : `${theme.expense}15`,
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleDelete();
+          }}
+          aria-label="Delete transaction"
+        >
+          <Trash2 size={18} style={{ color: isIncome ? theme.income : theme.expense }} />
+        </button>
       </div>
     </div>
   );
@@ -217,47 +217,7 @@ function DayGroup({ dateStr, items, isExpanded, onToggle, onEdit, onDeleted, for
   );
 }
 
-function MonthPicker({ selectedMonth, selectedYear, onSelect, maxMonthsBack }) {
-  const theme = useTheme();
-  const now = new Date();
-  const months = [];
 
-  for (let i = 0; i <= maxMonthsBack; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    months.push({ month: d.getMonth(), year: d.getFullYear() });
-  }
-
-  return (
-    <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-      <button
-        onClick={() => onSelect(null, null)}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition press"
-        style={{
-          backgroundColor: selectedMonth === null ? theme.accent : theme.bgSecondary,
-          color: selectedMonth === null ? theme.bg : theme.textMuted,
-          border: selectedMonth === null ? "none" : `1px solid ${theme.border}`,
-        }}
-      >
-        <Calendar size={12} />
-        All Time
-      </button>
-      {months.map((m) => (
-        <button
-          key={`${m.year}-${m.month}`}
-          onClick={() => onSelect(m.month, m.year)}
-          className="px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition press"
-          style={{
-            backgroundColor: selectedMonth === m.month && selectedYear === m.year ? theme.accent : theme.bgSecondary,
-            color: selectedMonth === m.month && selectedYear === m.year ? theme.bg : theme.textMuted,
-            border: selectedMonth === m.month && selectedYear === m.year ? "none" : `1px solid ${theme.border}`,
-          }}
-        >
-          {MONTHS[m.month].slice(0, 3)} {m.year}
-        </button>
-      ))}
-    </div>
-  );
-}
 
 export default function ExpenseList({ user }) {
   const [expenses, setExpenses] = useState([]);
@@ -265,13 +225,10 @@ export default function ExpenseList({ user }) {
   const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
-  const [filter, setFilter] = useState("All");
-  const [typeFilter, setTypeFilter] = useState("All");
+  const [unifiedFilter, setUnifiedFilter] = useState("all");
   const [editItem, setEditItem] = useState(null);
   const [deletedExpense, setDeletedExpense] = useState(null);
   const [expandedDays, setExpandedDays] = useState(new Set());
-  const [selectedMonth, setSelectedMonth] = useState(null);
-  const [selectedYear, setSelectedYear] = useState(null);
   const undoTimeoutRef = useRef(null);
   const { format } = useCurrency();
   const theme = useTheme();
@@ -345,37 +302,31 @@ export default function ExpenseList({ user }) {
     });
   }, []);
 
-  const maxMonthsBack = useMemo(() => {
-    if (expenses.length === 0) return 0;
-    const now = new Date();
-    let oldest = now;
-    for (const e of expenses) {
-      const d = e.createdAt?.toDate?.();
-      if (d && d < oldest) oldest = d;
-    }
-    const monthsDiff = (now.getFullYear() - oldest.getFullYear()) * 12 + (now.getMonth() - oldest.getMonth());
-    return Math.min(Math.max(monthsDiff, 0), 11);
-  }, [expenses]);
+  const now = new Date();
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
 
   const filtered = useMemo(() => {
     return expenses.filter((e) => {
       const expType = e.type || "expense";
-      const matchType = typeFilter === "All" || expType === typeFilter.toLowerCase();
-      const matchCat = filter === "All" || e.category === filter;
       const queryText = search.toLowerCase();
       const matchSearch = !queryText ||
         e.title?.toLowerCase().includes(queryText) ||
         e.note?.toLowerCase().includes(queryText);
 
-      let matchMonth = true;
-      if (selectedMonth !== null && selectedYear !== null) {
+      let matchFilter = true;
+      if (unifiedFilter === "time") {
         const d = e.createdAt?.toDate?.();
-        matchMonth = d && d.getMonth() === selectedMonth && d.getFullYear() === selectedYear;
+        matchFilter = d && d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+      } else if (unifiedFilter === "expense") {
+        matchFilter = expType === "expense";
+      } else if (unifiedFilter === "income") {
+        matchFilter = expType === "income";
       }
 
-      return matchType && matchCat && matchSearch && matchMonth;
+      return matchSearch && matchFilter;
     });
-  }, [expenses, typeFilter, filter, search, selectedMonth, selectedYear]);
+  }, [expenses, unifiedFilter, search]);
 
   const grouped = useMemo(() => {
     const sections = {};
@@ -407,9 +358,9 @@ export default function ExpenseList({ user }) {
     <div className="space-y-3 fade-in">
       <div className="rounded-2xl p-6 text-center" style={{ backgroundColor: theme.bgSecondary }}>
         <div className="flex justify-center mb-3">
-          <AlertTriangle size={40} style={{ color: theme.expense }} />
+          <AlertTriangle size={40} style={{ color: theme.danger }} />
         </div>
-        <p className="text-sm font-medium mb-2" style={{ color: theme.expense }}>Connection Issue</p>
+        <p className="text-sm font-medium mb-2" style={{ color: theme.danger }}>Connection Issue</p>
         <p className="text-xs" style={{ color: theme.textMuted }}>{error}</p>
       </div>
     </div>
@@ -419,8 +370,8 @@ export default function ExpenseList({ user }) {
     <AddExpense user={user} editData={editItem} onDone={() => setEditItem(null)} />
   );
 
-  return (
-    <div className="space-y-3 fade-in">
+return (
+    <div className="space-y-3 fade-in" style={{ backgroundColor: theme.bg }}>
       {/* Search - glass effect */}
       <div className="relative">
         <Search
@@ -453,48 +404,27 @@ export default function ExpenseList({ user }) {
         )}
       </div>
 
-      {/* Month Picker */}
-      <MonthPicker
-        selectedMonth={selectedMonth}
-        selectedYear={selectedYear}
-        onSelect={(m, y) => { setSelectedMonth(m); setSelectedYear(y); }}
-        maxMonthsBack={maxMonthsBack}
-      />
-
-      {/* Type filter pills */}
+      {/* Unified Filter Row */}
       <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-        {TYPE_FILTERS.map((t) => (
-          <button
-            key={t}
-            onClick={() => setTypeFilter(t)}
-            className="px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition press"
-            style={{
-              backgroundColor: typeFilter === t ? theme.accent : theme.bgSecondary,
-              color: typeFilter === t ? theme.bg : theme.textMuted,
-              border: typeFilter === t ? "none" : `1px solid ${theme.border}`,
-            }}
-          >
-            {t}
-          </button>
-        ))}
-      </div>
-
-      {/* Category filter pills */}
-      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide" style={{ maxHeight: "5.5rem" }}>
-        {CATEGORIES.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setFilter(cat)}
-            className="px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition press"
-            style={{
-              backgroundColor: filter === cat ? theme.accent : theme.bgSecondary,
-              color: filter === cat ? theme.bg : theme.textMuted,
-              border: filter === cat ? "none" : `1px solid ${theme.border}`,
-            }}
-          >
-            {cat !== "All" && CAT_ICON[cat] ? (() => { const Icon = CAT_ICON[cat]; return <Icon size={12} className="inline mr-1" />; })() : null}{cat}
-          </button>
-        ))}
+        {UNIFIED_FILTERS.map((f) => {
+          const isActive = unifiedFilter === f.key;
+          const Icon = f.icon;
+          return (
+            <button
+              key={f.key}
+              onClick={() => setUnifiedFilter(f.key)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition press"
+              style={{
+                backgroundColor: isActive ? `${theme.accent}15` : "transparent",
+                color: isActive ? theme.accent : theme.textMuted,
+                border: isActive ? `1px solid ${theme.accent}` : `1px solid ${theme.border}`,
+              }}
+            >
+              {Icon && <Icon size={12} />}
+              {f.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Transaction list */}

@@ -184,7 +184,7 @@ function ScoreGauge({ score, theme }) {
     ? theme.income
     : score >= 40
       ? theme.warning
-      : theme.expense;
+      : theme.danger;
 
   return (
     <div className="relative flex items-center justify-center" style={{ width: radius * 2, height: radius * 2 }}>
@@ -295,8 +295,8 @@ export default function AIInsights({ user, onUse }) {
           className="rounded-2xl p-4 text-center"
           style={{ backgroundColor: theme.bgSecondary, border: `1px solid ${theme.border}` }}
         >
-          <AlertTriangle size={18} className="mx-auto mb-2" style={{ color: theme.expense }} />
-          <p className="text-sm" style={{ color: theme.expense }}>{loadError}</p>
+          <AlertTriangle size={18} className="mx-auto mb-2" style={{ color: theme.danger }} />
+          <p className="text-sm" style={{ color: theme.danger }}>{loadError}</p>
         </div>
       )}
 
@@ -350,7 +350,7 @@ export default function AIInsights({ user, onUse }) {
                 <p
                   className="text-lg font-bold mb-1"
                   style={{
-                    color: insights.score >= 70 ? theme.income : insights.score >= 40 ? theme.warning : theme.expense,
+                    color: insights.score >= 70 ? theme.income : insights.score >= 40 ? theme.warning : theme.danger,
                   }}
                 >
                   {insights.scoreLabel}
